@@ -78,6 +78,7 @@ def get_data_set(ds_name_1,ds_name_2):
             for path in glob.iglob(os.path.join(path, d, '*.nii')):
                 image = nib.load(path)
                 img = image.get_fdata()
+                img = (img-img.min())/img.max()
                 ds_1.append(img)
                 lb.append([1,0])
          
@@ -86,6 +87,7 @@ def get_data_set(ds_name_1,ds_name_2):
             for path in glob.iglob(os.path.join(path, d, '*.nii')):
                 image = nib.load(path)
                 img = image.get_fdata()
+                img = (img-img.min())/img.max()
                 ds_2.append(img)
                 lb.append([0,1])
                 
