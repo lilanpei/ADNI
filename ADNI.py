@@ -12,12 +12,14 @@ from keras.layers.core import Dense, Dropout, Flatten
 from keras.layers.convolutional import Convolution3D, MaxPooling3D, ZeroPadding3D
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
+from sklearn.metrics import roc_curve
+#from sklearn.metrics import auc
 import keras
 n_folds = 5
 batch_size = 5
 n_epochs = 150
 save_dir = os.path.join(os.getcwd(), 'saved_models')
-ds_path = 'H:/Jupyter/ISPR_ADNI/input'
+ds_path = '/root'
 historyloglocation_train  = './{}_traininghistory_train.txt'.format(str(time.time()))
 historyloglocation_test  = './{}_traininghistory_train.txt'.format(str(time.time()))
 model_name = 'ADNI_VoxCNN'
@@ -68,8 +70,8 @@ def get_data_set(ds_name_1,ds_name_2):
 
     ds_1_path = "{}/{}".format(ds_path, ds_name_1)
     ds_2_path = "{}/{}".format(ds_path, ds_name_2)
-    #print(ds_1_path)
-    #print(ds_2_path)
+    print(ds_1_path)
+    print(ds_2_path)
     
     for path, dirs, files in os.walk(ds_1_path):
         for d in dirs:
@@ -226,22 +228,30 @@ def one_vs_one_train(ds_name_1,ds_name_2):
     opt = keras.optimizers.Adam(lr)
     model.compile(loss='categorical_crossentropy',optimizer=opt, metrics=['accuracy'])
     for x_train,y_train,x_test,y_test in folds_gen:
-        batch_gen = gen_batch(x_train,y_train)
-        print("Total number of batch in fold",sum(1 for x in batch_gen))
         for i in range(n_epochs):
+            print('########## epoch : ##########',i)
+            batch_gen = gen_batch(x_train,y_train)
             for x_batch, y_batch in batch_gen:
                 history_train = model.fit(x_batch, y_batch, epochs=1)
-                print ('######epoch: ', i)
                 print ('loss: ',history_train.history['loss'][0])
-                with open(historyloglocation_train,"a+") as f:
+                training_history = './training_history_{}_vs_{}.txt'.format(str(ds_name_1),str(ds_name_2))
+                with open(training_history,"a+") as f:
                     f.write('{},{},{}\n'.format(str(i), str(history_train.history['loss'][0]), str(history_train.history['acc'][0])))
             history_eval = model.evaluate(x_test,y_test)
-            print(history_eval.history['acc'])
-            print(history_eval.history['loss'])
-            with open(historyloglocation_test,"a+") as f:
-                f.write('{},{},{}\n'.format(str(i), str(history_eval.history['loss'][0]), str(history_train.history['acc'][0])))
+            print("$$$$$$$$$$ eval_acc : $$$$$$$$$$",history_eval[1])
+            evaluation_history = './evaluation_history_{}_vs_{}.txt'.format(str(ds_name_1),str(ds_name_2))
+            with open(evaluation_history,"a+") as f:
+                f.write('{},{}\n'.format(str(i), str(history_eval[1])))
+            #y_pred_keras = model.predict(x_test).ravel()
+            #fpr_keras, tpr_keras, thresholds_keras = roc_curve(y_test, y_pred_keras)
+            #print("@@@@@@@@@@ fpr_keras : ",fpr_keras,"@@@@@@@@@@ tpr_keras : ",tpr_keras)
+            #ROC_AUC_history = './ROC_AUC_history_{}_vs_{}.txt'.format(str(ds_name_1),str(ds_name_2))
+            #with open(ROC_AUC_history,"a+") as f:
+                #f.write('{},{}\n'.format(str(i), str(history_eval[1])))
+            #auc_keras = auc(fpr_keras, tpr_keras)
             #model.save_weights(save_dir)
             #model.save(save_dir)    
 
 for i in range(len(ds_name)):
     one_vs_one_train(str(ds_name[i][0]),str(ds_name[i][1]))
+
