@@ -5,6 +5,7 @@ import glob
 import math
 import random
 import time
+from os.path import join
 from collections import Counter
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from keras.models import Sequential
@@ -25,6 +26,74 @@ historyloglocation_test  = './{}_traininghistory_train.txt'.format(str(time.time
 model_name = 'ADNI_VoxCNN'
 lr = 27*1e-6
 ds_name = [["AD","NC"],["AD","EMCI"],["AD","LMCI"],["LMCI","NC"],["LMCI","EMCI"],["EMCI","NC"]]
+
+def sum_file_path():
+    lb = ["AD", "LMCI", "EMCI", "NC"]
+    lb_cnt = list()
+    path_list = list()
+    for i in range(len(lb)):
+        path = "{}/{}".format(ds_path, lb[i])
+        path_list.append(path)
+
+    for p in range(len(path_list)):
+        cnt = 0
+        for path, dirs, files in os.walk(path_list[p]):
+            for d in dirs:
+                for path in glob.iglob(os.path.join(path, d, '*.nii')):
+                    with open("map_file","a+") as f:
+                        f.write('{},{},{}\n'.format(str(cnt), str(path), str(lb[p])))
+                        cnt += 1
+        lb_cnt.append(cnt)
+    with open("cnt_file","a+") as f:
+        f.write('{}:{},{}:{},{}:{},{}:{}\n'.format(str(lb[0]), str(lb_cnt[0]),str(lb[1]), str(lb_cnt[1]),str(lb[2]), str(lb_cnt[2]),str(lb[3]), str(lb_cnt[3])))
+
+def get_global_min_max(ds_path):
+    im_min = list()
+    im_max = list()
+
+    for path, dirs, files in os.walk(ds_path):
+        for d in dirs:
+            for path in glob.iglob(os.path.join(path, d, '*.nii')):
+                image = nib.load(path)
+                img = image.get_fdata()
+                im_min.append(img.min())
+                im_max.append(img.max())
+
+    image_min = np.asarray(im_min)
+    image_max = np.asarray(im_max)
+    global_min = image_min.min()
+    global_max = image_max.max()
+    return global_min, global_max
+
+def get_global_mean_std(ds_path):
+    flag = 0
+    im -= im
+    cnt = 0
+    if flag==0:
+        for path, dirs, files in os.walk(ds_path):
+            if flag==0:
+                for d in dirs:
+                    if flag==0:
+                        for path in glob.iglob(os.path.join(path, d, '*.nii')):
+                            image = nib.load(path)
+                            im = image.get_fdata()
+                            flag = 1
+                            break
+
+    for path, dirs, files in os.walk(ds_path):
+        for d in dirs:
+            for path in glob.iglob(os.path.join(path, d, '*.nii')):
+                image = nib.load(path)
+                img = image.get_fdata()
+                im += img
+                cnt +=1
+
+    global_mean = im/cnt
+    global_std = np.zeros_like(global_mean,dtype=np.float64)
+    global_std += (im-global_mean)**2
+    global_std /= cnt -1
+    global_std = np.sqrt(global_std)
+    return global_mean, global_std
 
 def get_model(summary=False):
     """ Return the Keras model of the network
@@ -70,15 +139,19 @@ def get_data_set(ds_name_1,ds_name_2):
 
     ds_1_path = "{}/{}".format(ds_path, ds_name_1)
     ds_2_path = "{}/{}".format(ds_path, ds_name_2)
-    print(ds_1_path)
-    print(ds_2_path)
-    
+    #print(ds_1_path)
+    #print(ds_2_path)
+    global_min, global_max = get_global_min_max(ds_path)
+    #global_mean, global_std = get_global_mean_std(ds_path)
+
     for path, dirs, files in os.walk(ds_1_path):
         for d in dirs:
             for path in glob.iglob(os.path.join(path, d, '*.nii')):
                 image = nib.load(path)
                 img = image.get_fdata()
-                img = (img-img.min())/img.max()
+                #img = (img-img.min())/img.max()
+                img = (img-global_min)/(global_max-global_min)
+                #img = (img-global_mean)/global_std
                 ds_1.append(img)
                 lb.append([1,0])
          
@@ -87,7 +160,9 @@ def get_data_set(ds_name_1,ds_name_2):
             for path in glob.iglob(os.path.join(path, d, '*.nii')):
                 image = nib.load(path)
                 img = image.get_fdata()
-                img = (img-img.min())/img.max()
+                #img = (img-img.min())/img.max()
+                img = (img-global_min)/(global_max-global_min)
+                #img = (img-global_mean)/global_std
                 ds_2.append(img)
                 lb.append([0,1])
                 
