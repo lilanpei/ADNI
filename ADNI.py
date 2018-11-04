@@ -13,7 +13,7 @@ from keras.layers.convolutional import Convolution3D, MaxPooling3D, ZeroPadding3
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
 from sklearn.metrics import roc_curve
-#from sklearn.metrics import auc
+from sklearn.metrics import auc
 import keras
 n_folds = 5
 batch_size = 5
@@ -226,33 +226,35 @@ def gen_batch(data,label):
 def one_vs_one_train(ds_name_1,ds_name_2):
     ds_1, ds_2, lb = get_data_set(ds_name_1,ds_name_2)
     folds_gen = gen_folds(ds_1,ds_2,lb)
-    model = get_model(summary=True)
-    opt = keras.optimizers.Adam(lr)
-    model.compile(loss='categorical_crossentropy',optimizer=opt, metrics=['accuracy'])
+    fold_index = 0
     for x_train,y_train,x_test,y_test in folds_gen:
-        for i in range(n_epochs):
+       fold_index += 1
+       model = get_model(summary=True)
+       opt = keras.optimizers.Adam(lr)
+       model.compile(loss='categorical_crossentropy',optimizer=opt, metrics=['accuracy'])
+       for i in range(n_epochs):
             print('########## epoch : ##########',i)
             batch_gen = gen_batch(x_train,y_train)
             for x_batch, y_batch in batch_gen:
                 history_train = model.fit(x_batch, y_batch, epochs=1)
-                print ('loss: ',history_train.history['loss'][0])
-                training_history = './training_history_{}_vs_{}.txt'.format(str(ds_name_1),str(ds_name_2))
+                print ('@@@@@@@@@@ loss: @@@@@@@@@@',history_train.history['loss'][0])
+                training_history = './training_history_{}_vs_{}_fold_index_{}.txt'.format(str(ds_name_1),str(ds_name_2),str(fold_index))
                 with open(training_history,"a+") as f:
                     f.write('{},{},{}\n'.format(str(i), str(history_train.history['loss'][0]), str(history_train.history['acc'][0])))
             history_eval = model.evaluate(x_test,y_test)
             print("$$$$$$$$$$ eval_acc : $$$$$$$$$$",history_eval[1])
-            evaluation_history = './evaluation_history_{}_vs_{}.txt'.format(str(ds_name_1),str(ds_name_2))
+            evaluation_history = './evaluation_history_{}_vs_{}_fold_index_{}.txt'.format(str(ds_name_1),str(ds_name_2),str(fold_index))
             with open(evaluation_history,"a+") as f:
                 f.write('{},{}\n'.format(str(i), str(history_eval[1])))
-            #y_pred_keras = model.predict(x_test).ravel()
-            #fpr_keras, tpr_keras, thresholds_keras = roc_curve(y_test, y_pred_keras)
-            #print("@@@@@@@@@@ fpr_keras : ",fpr_keras,"@@@@@@@@@@ tpr_keras : ",tpr_keras)
-            #ROC_AUC_history = './ROC_AUC_history_{}_vs_{}.txt'.format(str(ds_name_1),str(ds_name_2))
-            #with open(ROC_AUC_history,"a+") as f:
-                #f.write('{},{}\n'.format(str(i), str(history_eval[1])))
-            #auc_keras = auc(fpr_keras, tpr_keras)
-            #model.save_weights(save_dir)
-            #model.save(save_dir)    
+       y_pred_keras = model.predict(x_test).ravel()
+       fpr_keras, tpr_keras, thresholds_keras = roc_curve(y_test[:,0], y_pred_keras[:,0])
+       auc_keras = auc(fpr_keras, tpr_keras)
+       print("@@@@@@@@@@ fpr_keras : ",fpr_keras,"@@@@@@@@@@ tpr_keras : ",tpr_keras)
+       ROC_AUC_history = './ROC_AUC_history_{}_vs_{}_fold_index_{}.txt'.format(str(ds_name_1),str(ds_name_2),str(fold_index))
+       with open(ROC_AUC_history,"a+") as f:
+           f.write('{},{},{}\n'.format(str(fpr_keras), str(tpr_keras), str(auc_keras)))
+       #model.save_weights(save_dir)
+       #model.save(save_dir)
 
 for i in range(len(ds_name)):
     one_vs_one_train(str(ds_name[i][0]),str(ds_name[i][1]))
