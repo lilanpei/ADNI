@@ -16,6 +16,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
+from sklearn.preprocessing import StandardScaler
 import keras
 n_folds = 5
 batch_size = 5
@@ -96,6 +97,13 @@ def get_global_mean_std(ds_path):
     global_std = np.sqrt(global_std)
     return global_mean, global_std
 
+def standardize_3d_image_on_last_axis(image):
+    scalers = {}
+    for i in range(image.shape[-1]):
+        scalers[i] = StandardScaler()
+        image[:, i, :] = scalers[i].fit_transform(image[:, i, :])
+    return image
+
 def get_model(summary=False):
     """ Return the Keras model of the network
     """
@@ -142,7 +150,7 @@ def get_data_set(ds_name_1,ds_name_2):
     ds_2_path = "{}/{}".format(ds_path, ds_name_2)
     #print(ds_1_path)
     #print(ds_2_path)
-    global_min, global_max = get_global_min_max(ds_path)
+    #global_min, global_max = get_global_min_max(ds_path)
     #global_mean, global_std = get_global_mean_std(ds_path)
 
     for path, dirs, files in os.walk(ds_1_path):
@@ -151,8 +159,9 @@ def get_data_set(ds_name_1,ds_name_2):
                 image = nib.load(path)
                 img = image.get_fdata()
                 #img = (img-img.min())/img.max()
-                img = (img-global_min)/(global_max-global_min)
+                #img = (img-global_min)/(global_max-global_min)
                 #img = (img-global_mean)/global_std
+                img = standardize_3d_image_on_last_axis(img)
                 ds_1.append(img)
                 lb.append([1,0])
          
@@ -162,8 +171,9 @@ def get_data_set(ds_name_1,ds_name_2):
                 image = nib.load(path)
                 img = image.get_fdata()
                 #img = (img-img.min())/img.max()
-                img = (img-global_min)/(global_max-global_min)
+                #img = (img-global_min)/(global_max-global_min)
                 #img = (img-global_mean)/global_std
+                img = standardize_3d_image_on_last_axis(img)
                 ds_2.append(img)
                 lb.append([0,1])
                 
