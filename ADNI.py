@@ -1,3 +1,4 @@
+import setGPU
 import os
 import numpy as np
 import nibabel as nib
@@ -307,15 +308,16 @@ def one_vs_one_train(ds_name_1,ds_name_2):
        model = get_model(summary=True)
        opt = keras.optimizers.Adam(lr)
        model.compile(loss='categorical_crossentropy',optimizer=opt, metrics=['accuracy'])
+
        for i in range(n_epochs):
             print('########## epoch : ##########',i)
             batch_gen = gen_batch(x_train,y_train)
             for x_batch, y_batch in batch_gen:
-                history_train = model.fit(x_batch, y_batch, epochs=1)
-                print ('@@@@@@@@@@ loss: @@@@@@@@@@',history_train.history['loss'][0])
-                training_history = './training_history_{}_vs_{}_fold_index_{}.txt'.format(str(ds_name_1),str(ds_name_2),str(fold_index))
-                with open(training_history,"a+") as f:
-                    f.write('{},{},{}\n'.format(str(i), str(history_train.history['loss'][0]), str(history_train.history['acc'][0])))
+                history_train = model.fit(x_batch, y_batch, epochs=1, verbose=0, shuffle=True)
+            print ('@@@@@@@@@@ loss: @@@@@@@@@@',history_train.history['loss'][0])
+            training_history = './training_history_{}_vs_{}_fold_index_{}.txt'.format(str(ds_name_1),str(ds_name_2),str(fold_index))
+            with open(training_history,"a+") as f:
+                f.write('{},{},{}\n'.format(str(i), str(history_train.history['loss'][0]), str(history_train.history['acc'][0])))
             history_eval = model.evaluate(x_test,y_test)
             print("$$$$$$$$$$ eval_acc : $$$$$$$$$$",history_eval[1])
             evaluation_history = './evaluation_history_{}_vs_{}_fold_index_{}.txt'.format(str(ds_name_1),str(ds_name_2),str(fold_index))
