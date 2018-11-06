@@ -27,8 +27,8 @@ def plot_ROC_AUC(ROC_AUC,prefix):
     std = list()
     #for i in range(ROC_AUC.shape[-1]):
     for i in range(70):
-        mean.append(np.mean(ROC_AUC[ds_name.index(prefix), :, i]))
-        std.append(np.std(ROC_AUC[ds_name.index(prefix), :, i]))
+        mean.append(np.mean(ROC_AUC[:, :, i]))
+        std.append(np.std(ROC_AUC[:, :, i]))
     mean = np.asanyarray(mean)
     std = np.asanyarray(std)
 
