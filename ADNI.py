@@ -8,7 +8,7 @@ import random
 import time
 from os.path import join
 from collections import Counter
-from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Flatten
 from keras.layers.convolutional import Convolution3D, MaxPooling3D, ZeroPadding3D
@@ -202,6 +202,8 @@ def gen_folds(data_1,data_2,label):
     indices_folds = list(range(n_folds))
     folds_1 = list(StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=1).split(data_1,label[:len(data_1),0]))
     folds_2 = list(StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=1).split(data_2,label[len(data_1):len(data_1)+len(data_2),0]))
+    #folds_1 = list(KFold(n_splits=n_folds, shuffle=True, random_state=0).split(data_1))
+    #folds_2 = list(KFold(n_splits=n_folds, shuffle=True, random_state=0).split(data_2))
     for i in indices_folds:
         x_train = np.concatenate((data_1[folds_1[i][0]],data_2[folds_2[i][0]]),axis=0)
         y_train = np.concatenate((label[folds_1[i][0]],label[folds_2[i][0]+len(data_1)]),axis=0)
