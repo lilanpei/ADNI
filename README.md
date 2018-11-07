@@ -3,6 +3,7 @@
 ## How to run the code ?
 1. Prerequisites :
 ```
+  nvidia-docker run -v "Your local data set path":/root -it gcr.io/tensorflow/tensorflow:latest-gpu bash
   pip install --upgrade nibabel
   pip install --upgrade keras==2.1
   pip install --upgrade setGPU
