@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+n_folds = 5
 ds_name = [["AD","NC"],["AD","EMCI"],["AD","LMCI"],["LMCI","NC"],["LMCI","EMCI"],["EMCI","NC"]]
 plot_history_path="H:\Google Drive\plot"
 plot_data_type= ["ROC_AUC", "evaluation"]
@@ -12,7 +13,7 @@ def get_plot_data(history_path, prefix, plot_data_type):
     history_list = list()
     data_list = list()
     history_txt_prefix="{}\\{}_history_{}_vs_{}".format(str(history_path),str(plot_data_type),str(prefix[0]),str(prefix[1]))
-    for j in range(1,len(ds_name)):
+    for j in range(1,n_folds+1):
         history_txt="{}_fold_index_{}.txt".format(str(history_txt_prefix),str(j))
         history_list.append(history_txt)
         #print(history_txt)
