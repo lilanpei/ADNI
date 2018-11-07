@@ -158,10 +158,10 @@ def get_data_set(ds_name_1,ds_name_2):
             for path in glob.iglob(os.path.join(path, d, '*.nii')):
                 image = nib.load(path)
                 img = image.get_fdata()
-                #img = (img-img.min())/img.max()
+                img = (img-img.min())/img.max()
                 #img = (img-global_min)/(global_max-global_min)
                 #img = (img-global_mean)/global_std
-                img = standardize_3d_image_on_last_axis(img)
+                #img = standardize_3d_image_on_last_axis(img)
                 ds_1.append(img)
                 lb.append([1,0])
          
@@ -170,10 +170,10 @@ def get_data_set(ds_name_1,ds_name_2):
             for path in glob.iglob(os.path.join(path, d, '*.nii')):
                 image = nib.load(path)
                 img = image.get_fdata()
-                #img = (img-img.min())/img.max()
+                img = (img-img.min())/img.max()
                 #img = (img-global_min)/(global_max-global_min)
                 #img = (img-global_mean)/global_std
-                img = standardize_3d_image_on_last_axis(img)
+                #img = standardize_3d_image_on_last_axis(img)
                 ds_2.append(img)
                 lb.append([0,1])
                 
