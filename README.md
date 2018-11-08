@@ -1,4 +1,4 @@
-# VoxCNN for ADNI 3D Brain MRI classification
+# VoxCNN for ADNI 3D Brain MRI classification (ISPR final project in UNIPI)
 
 ## How to run the code ?
 1. Prerequisites :
