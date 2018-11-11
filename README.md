@@ -1,5 +1,12 @@
 # VoxCNN for ADNI 3D Brain MRI classification (ISPR final project in UNIPI)
 
+## Model architecture
+```
+     VoxCNN (Voxels convolutional neural network) model architecture
+```
+![alt text](https://github.com/lilanpei/ADNI/blob/master/ADNI_VoxCNN_model_architecture.png)
+
+
 ## How to run the code ?
 1. Prerequisites :
 ```
